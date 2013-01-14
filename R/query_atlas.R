@@ -8,6 +8,11 @@ connect_atlas_db <- function(dbpath=NULL) {
   con <- dbConnect(drv, dbname = dbpath)
 }
 
+roi_names <- function(conn) {
+  x <- execute(Select(conn, from="Foci"))
+  unique(x$FROI)
+}
+
 get_roi_foci <- function(conn, froi) {
   sel <- Select(conn, from="Foci", where=Equals("FROI",froi))
   res <- execute(sel)
