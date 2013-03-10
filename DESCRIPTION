@@ -1,4 +1,4 @@
-Package: neuropls
+Package: FROIAtlas
 Imports:
     graphics,
     grid,
@@ -8,7 +8,7 @@ Maintainer: Bradley Buchsbaum <bbuchsbaum@rotman-baycrest.on.ca>
 Title: FROIAtlas
 Type: Package
 Author: Bradley Buchsbaum
-Description: FROIAtlas is  apackage for working with the FROIAtlas project
+Description: FROIAtlas is a package for working with the FROIAtlas project
 Version: 0.0.1
 Date: 2013-01-10
 Depends:
