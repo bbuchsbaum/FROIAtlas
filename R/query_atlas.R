@@ -58,7 +58,6 @@ boot_foci <- function(coords, N=50, template=NULL, kernel=NULL) {
   
   Dweights <- 1/(Dcent)
   Dweights <- Dweights/sum(Dweights)
-  browser()
   res <- mclapply(1:N, function(i) {
     print(i)
     boot.sam <- sample(1:nrow(coords), replace=TRUE, prob=Dweights)
