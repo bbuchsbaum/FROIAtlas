@@ -13,9 +13,43 @@ roi_names <- function(conn) {
   unique(x$FROI)
 }
 
-get_roi_foci <- function(conn, froi) {
+estimateClusters <- function(coords, method=c("pdf", "clues")) {
+  if (method[1] == "clues") {
+    clues(as.matrix(coords), n0=3, strengthMethod="CH")  
+  } else if (method[1]=="pdf") {
+    pdfCluster(as.matrix(coords))
+  } else {
+    stop(paste("illegal method: ", method))  
+  }
+}
+
+outliers <- function(coords, qcrit=.999, plot=TRUE) {
+  res <- sign1(coords, qcrit=qcrit)
+  if (plot) {
+    boxplot(res$x.dist)
+  }
+  
+  res
+}
+
+get_roi_foci <- function(conn, froi, hemi=NULL) {
   sel <- Select(conn, from="Foci", where=Equals("FROI",froi))
-  res <- execute(sel)
+  foci <- execute(sel)
+  if (!is.null(hemi)) {
+    if (toupper(hemi) == "LEFT") {
+      keep <- foci[,2]  <= 0
+      foci <- foci[keep,]
+    } else if (toupper(hemi) == "RIGHT") {
+      keep <- foci[,2]  > 0
+      foci <- foci[keep,]
+    } else {
+      stop(paste("illegal value for hemi argument:", hemi))
+    }
+  }
+  
+  foci
+  
+  
 }
 
 blur_coord <- function(coord, template, kernel, weight=1) {
