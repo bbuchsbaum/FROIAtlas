@@ -13,7 +13,9 @@ roi_names <- function(conn) {
   unique(x$FROI)
 }
 
-estimateClusters <- function(coords, method=c("pdf", "clues")) {
+
+
+clusterCoords <- function(coords, method=c("pdf", "clues")) {
   if (method[1] == "clues") {
     clues(as.matrix(coords), n0=3, strengthMethod="CH")  
   } else if (method[1]=="pdf") {
@@ -30,6 +32,20 @@ outliers <- function(coords, qcrit=.999, plot=TRUE) {
   }
   
   res
+}
+
+changeLabel <- function(conn, oldName, newName) {
+  u1 = Update(conn, "Foci", list(FROI=newName), where=Equals("FROI", oldName))
+  u2 = Update(conn, "Study", list(FROI=newName), where=Equals("FROI", oldName))
+  execute(u1)
+  execute(u2)
+}
+
+tal2mni <- function(coord) {
+  MTT <- solve(matrix(c(.9357, .0029, -.0072, -1.0423,
+                  -.0065, .9396, -.0726, -1.3940,
+                  .0103,  .0752, .8967, 3.6475,
+                  0, 0, 0, 1), 4,4, byrow=TRUE))
 }
 
 get_roi_foci <- function(conn, froi, hemi=NULL) {

@@ -16,6 +16,7 @@ Depends:
     methods,
     RSQLite,
     clues,
-    mvoutlier
+    mvoutlier,
+    pdfCluster
     
     
