@@ -25,14 +25,9 @@ clusterCoords <- function(coords, method=c("pdf", "clues")) {
   }
 }
 
-outliers <- function(coords, qcrit=.999, plot=TRUE) {
-  res <- sign1(coords, qcrit=qcrit)
-  if (plot) {
-    boxplot(res$x.dist)
-  }
-  
-  res
-}
+
+
+
 
 changeLabel <- function(conn, oldName, newName) {
   u1 = Update(conn, "Foci", list(FROI=newName), where=Equals("FROI", oldName))
@@ -65,6 +60,34 @@ get_roi_foci <- function(conn, froi, hemi=NULL) {
   
   foci
   
+  
+}
+
+outliers <- function(coords, qcrit=.999, plot=TRUE) {
+  res <- sign1(coords, qcrit=qcrit)
+  if (plot) {
+    boxplot(res$x.dist)
+  }
+  
+  res
+}
+
+check_outliers(conn, roiname, hemi="left") {
+  foci <- get_roi_foci(conn, roiname, hemi) 
+  coords <- foci[,2:4]
+  
+  cvals <- c(.95, .99, .999, .9999)
+  outmat <- do.call(cbind, lapply(cvals, function(crit) outliers(coords, crit, plot=FALSE)$wfinal01))
+  outscore <- apply(outmat,1, function(vals) {
+    o <- which(vals == 0)
+    if (length(o) > 0) {
+      cvals[o[length(o)]]
+    } else {
+      0
+    }
+  })
+  
+  foci$outlierScore <- outscore
   
 }
 
