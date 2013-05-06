@@ -13,9 +13,82 @@ roi_names <- function(conn) {
   unique(x$FROI)
 }
 
-get_roi_foci <- function(conn, froi) {
+
+
+clusterCoords <- function(coords, method=c("pdf", "clues")) {
+  if (method[1] == "clues") {
+    clues(as.matrix(coords), n0=3, strengthMethod="CH")  
+  } else if (method[1]=="pdf") {
+    pdfCluster(as.matrix(coords))
+  } else {
+    stop(paste("illegal method: ", method))  
+  }
+}
+
+
+
+
+
+changeLabel <- function(conn, oldName, newName) {
+  u1 = Update(conn, "Foci", list(FROI=newName), where=Equals("FROI", oldName))
+  u2 = Update(conn, "Study", list(FROI=newName), where=Equals("FROI", oldName))
+  execute(u1)
+  execute(u2)
+}
+
+tal2mni <- function(coord) {
+  MTT <- solve(matrix(c(.9357, .0029, -.0072, -1.0423,
+                  -.0065, .9396, -.0726, -1.3940,
+                  .0103,  .0752, .8967, 3.6475,
+                  0, 0, 0, 1), 4,4, byrow=TRUE))
+}
+
+get_roi_foci <- function(conn, froi, hemi=NULL) {
   sel <- Select(conn, from="Foci", where=Equals("FROI",froi))
-  res <- execute(sel)
+  foci <- execute(sel)
+  if (!is.null(hemi)) {
+    if (toupper(hemi) == "LEFT") {
+      keep <- foci[,2]  <= 0
+      foci <- foci[keep,]
+    } else if (toupper(hemi) == "RIGHT") {
+      keep <- foci[,2]  > 0
+      foci <- foci[keep,]
+    } else {
+      stop(paste("illegal value for hemi argument:", hemi))
+    }
+  }
+  
+  foci
+  
+  
+}
+
+outliers <- function(coords, qcrit=.999, plot=TRUE) {
+  res <- sign1(coords, qcrit=qcrit)
+  if (plot) {
+    boxplot(res$x.dist)
+  }
+  
+  res
+}
+
+check_outliers(conn, roiname, hemi="left") {
+  foci <- get_roi_foci(conn, roiname, hemi) 
+  coords <- foci[,2:4]
+  
+  cvals <- c(.95, .99, .999, .9999)
+  outmat <- do.call(cbind, lapply(cvals, function(crit) outliers(coords, crit, plot=FALSE)$wfinal01))
+  outscore <- apply(outmat,1, function(vals) {
+    o <- which(vals == 0)
+    if (length(o) > 0) {
+      cvals[o[length(o)]]
+    } else {
+      0
+    }
+  })
+  
+  foci$outlierScore <- outscore
+  
 }
 
 blur_coord <- function(coord, template, kernel, weight=1) {
