@@ -53,6 +53,8 @@ get_roi_foci <- function(conn, froi, hemi=NULL) {
     } else if (toupper(hemi) == "RIGHT") {
       keep <- foci[,2]  > 0
       foci <- foci[keep,]
+    } else if (toupper(hemi) == "BOTH") {
+      foci
     } else {
       stop(paste("illegal value for hemi argument:", hemi))
     }
