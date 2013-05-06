@@ -14,6 +14,12 @@ setGeneric("execute",
 			standardGeneric("execute")
 )
 
+setGeneric("toString",
+           function(x)
+             standardGeneric("toString")
+)
+
+
 
 					  
 
@@ -120,12 +126,12 @@ Insert <- function(conn, table, values) {
 }
 
 
-setMethod("print", signature=signature(x="Select"),
+setMethod("toString", signature=signature(x="Select"),
 		def=function(x) {
 			paste("SELECT", 
 			paste(x@columns, collapse=","),
 			paste("FROM", x@from),
-			ifelse(!inherits(x@where, "Empty"), paste("WHERE", print(x@where)), ""),
+			ifelse(!inherits(x@where, "Empty"), paste("WHERE", toString(x@where)), ""),
 			ifelse(x@orderBy != "", paste("ORDER BY", x@orderBy), ""))
 		
 		})
@@ -143,12 +149,12 @@ assignList <- function(alist) {
   paste(res, collapse=", ")
 }
 
-setMethod("print", signature=signature(x="Update"),
+setMethod("toString", signature=signature(x="Update"),
 		def=function(x) {
 			paste("UPDATE", 
 					paste(x@table),
 					paste("SET", assignList(x@set)),
-					paste("WHERE", print(x@where)))
+					paste("WHERE", toString(x@where)))
 					
 			
 		})
@@ -166,7 +172,7 @@ commaList <- function(values) {
 				
 }
 
-setMethod("print", signature=signature(x="Insert"),
+setMethod("toString", signature=signature(x="Insert"),
 		def=function(x) {
 			paste("INSERT INTO", 
 					paste(x@table),
@@ -178,8 +184,8 @@ setMethod("print", signature=signature(x="Insert"),
 
 setMethod("execute", signature=signature(x="Select"),
 		def=function(x) {
-			statement <- print(x)
-			qres <- dbSendQuery(x@conn,as.character(statement)) 	
+			statement <- toString(x)
+			qres <- dbSendQuery(x@conn,statement) 	
 			ret <- fetch(qres,-1)
 			dbClearResult(qres)
 			ret
@@ -188,13 +194,13 @@ setMethod("execute", signature=signature(x="Select"),
 
 setMethod("execute", signature=signature(x="Update"),
 		def=function(x) {
-			statement <- print(x)
+			statement <- toString(x)
 			dbSendQuery(x@conn,statement) 				
 		})
 
 setMethod("execute", signature=signature(x="Insert"),
 		def=function(x, conn=NULL) {
-			statement <- print(x)
+			statement <- toString(x)
                         if (!is.null(conn)) {
                           dbSendQuery(conn,statement)
                         } else {
@@ -211,52 +217,52 @@ setMethod("%and%", signature=signature(x="WhereExp", y="WhereExp"),
 setMethod("%or%", signature=signature(x="WhereExp", y="WhereExp"),
 		def=function(x, y) { new("Or", x=x, y=y) })
 
-setMethod("print", signature=signature(x="Group"),
+setMethod("toString", signature=signature(x="Group"),
 		def=function(x) {
-			paste("(", print(x@x), ")")
+			paste("(", toString(x@x), ")")
 		})
 
-setMethod("print", signature=signature(x="And"),
+setMethod("toString", signature=signature(x="And"),
 		def=function(x) {
-			paste(print(x@x), "AND", print(x@y), sep=" ")
+			paste(toString(x@x), "AND", toString(x@y), sep=" ")
 		})
 
-setMethod("print", signature=signature(x="Or"),
+setMethod("toString", signature=signature(x="Or"),
 		def=function(x) {
-			paste(print(x@x), "OR", print(x@y), sep=" ")
+			paste(toString(x@x), "OR", toString(x@y), sep=" ")
 		})
 
-setMethod("print", signature=signature(x="EqualsInt"),
+setMethod("toString", signature=signature(x="EqualsInt"),
 		def=function(x) {
 			paste(x@column, "=", x@value, sep=" ")
 		})
 
-setMethod("print", signature=signature(x="EqualsString"),
+setMethod("toString", signature=signature(x="EqualsString"),
 		def=function(x) {
 			paste(x@column, "=", paste("\"",  x@value, "\"", sep=""), sep="")
 		})
 
-setMethod("print", signature=signature(x="NotEqualsInt"),
+setMethod("toString", signature=signature(x="NotEqualsInt"),
 		def=function(x) {
 			paste(x@column, "<>", x@value, sep=" ")
 		})
 
-setMethod("print", signature=signature(x="NotEqualsString"),
+setMethod("toString", signature=signature(x="NotEqualsString"),
 		def=function(x) {
 			paste(x@column, "<>", paste("'",  x@value, "'", sep=""), sep="")
 		})
 
-setMethod("print", signature=signature(x="LessThan"),
+setMethod("toString", signature=signature(x="LessThan"),
 		def=function(x) {
 			paste(x@column, "<", x@value, sep=" ")
 		})
 
-setMethod("print", signature=signature(x="GreaterThan"),
+setMethod("toString", signature=signature(x="GreaterThan"),
 		def=function(x) {
 			paste(x@column, ">", x@value, sep=" ")
 		})
 
-setMethod("print", signature=signature(x="Like"),
+setMethod("toString", signature=signature(x="Like"),
 		def=function(x) {
 			paste(x@column, "LIKE", paste("'", x@value, "'", sep=""), sep=" ")
 		})
