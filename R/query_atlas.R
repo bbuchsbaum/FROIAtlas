@@ -50,6 +50,10 @@ boot_foci <- function(coords, N=50, template=NULL, kernel=NULL) {
     kernel = Kernel(c(15,15,15), spacing(template), dnorm, mean=0, sd=5)
   }
   
+  if (ncol(coords) != 3) {
+    stop("coords must be matrix with 3 columns (X, Y, Z)")
+  }
+  
     
   centroid <- apply(coords, 2, function(vals) median(vals))
   Dcent <- apply(coords, 1, function(coord) {
@@ -65,7 +69,7 @@ boot_foci <- function(coords, N=50, template=NULL, kernel=NULL) {
     print(C)
     blur_coord(C, template, kernel)
   })
-  
+ 
   res <- Reduce("+", res)
   R <- range(res)
   ovals <- (res@data - R[1])/diff(R)
