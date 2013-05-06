@@ -179,7 +179,7 @@ setMethod("print", signature=signature(x="Insert"),
 setMethod("execute", signature=signature(x="Select"),
 		def=function(x) {
 			statement <- print(x)
-			qres <- dbSendQuery(x@conn,statement) 	
+			qres <- dbSendQuery(x@conn,as.character(statement)) 	
 			ret <- fetch(qres,-1)
 			dbClearResult(qres)
 			ret

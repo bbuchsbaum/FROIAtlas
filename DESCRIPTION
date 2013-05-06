@@ -15,12 +15,12 @@ Depends:
     R (>= 2.15.0),
     methods,
     RSQLite,
-<<<<<<< HEAD
     clues,
     mvoutlier,
-    pdfCluster
-=======
+    pdfCluster,
     multicore
->>>>>>> 6932448fa714c93b03f738eee178ece0d0d35ce8
-    
+Collate:
+  'sql_query' 
+  'query_atlas.R'
+   
     

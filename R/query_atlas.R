@@ -72,7 +72,7 @@ outliers <- function(coords, qcrit=.999, plot=TRUE) {
   res
 }
 
-check_outliers(conn, roiname, hemi="left") {
+check_outliersb<- function(conn, roiname, hemi="left") {
   foci <- get_roi_foci(conn, roiname, hemi) 
   coords <- foci[,2:4]
   
@@ -101,8 +101,8 @@ blur_coord <- function(coord, template, kernel, weight=1) {
   neuroim:::SparseBrainVolume(kernel@weights * weight, space(template), indices=indices)
 }
 
-blur_foci <- function(coords, template) {
-  kernel <- Kernel(c(15,15,15), spacing(template), dnorm, mean=0, sd=5)
+blur_foci <- function(coords, template, kerndim=c(15,15,15)) {
+  kernel <- Kernel(kerndim, spacing(template), dnorm, mean=0, sd=5)
   centroid <- apply(coords, 2, function(vals) median(vals))
   Dcent <- apply(coords, 1, function(coord) {
     sqrt(sum((coord - centroid)^2))
