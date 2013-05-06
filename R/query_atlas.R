@@ -72,7 +72,7 @@ outliers <- function(coords, qcrit=.999, plot=TRUE) {
   res
 }
 
-check_outliersb<- function(conn, roiname, hemi="left") {
+check_outliers <- function(conn, roiname, hemi="left") {
   foci <- get_roi_foci(conn, roiname, hemi) 
   coords <- foci[,2:4]
   
