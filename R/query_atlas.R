@@ -87,8 +87,8 @@ check_outliers <- function(conn, roiname, hemi="left") {
     }
   })
   
-  foci$distance <- outliers(coords, .95, plot=FALSE)$x.dist  
-  foci$outlierScore <- outscore
+  foci$dscore <- outliers(coords, .95, plot=FALSE)$x.dist  
+  foci$prob <- outscore
   foci
   
 }
