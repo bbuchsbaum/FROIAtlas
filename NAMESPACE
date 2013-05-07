@@ -1,6 +1,7 @@
 export(connect_atlas_db)
 export(roi_names)
 export(get_roi_foci)
+export(clusterCoords)
 export(check_outliers)
 exportMethods(toString, execute)
 exportClass(Select)
