@@ -15,11 +15,15 @@ roi_names <- function(conn) {
 
 
 
-clusterCoords <- function(coords, method=c("pdf", "clues")) {
+clusterCoords <- function(coords, method=c("pdf", "clues", "pam")) {
   if (method[1] == "clues") {
     clues(as.matrix(coords), n0=3, strengthMethod="CH")  
   } else if (method[1]=="pdf") {
     pdfCluster(as.matrix(coords))
+  } else if (method[1]=="pam") {
+    cg <- clusGap(coords, pam,5)
+    K <- which.max(cg$Tab[,"gap"])
+    pam(coords, K)
   } else {
     stop(paste("illegal method: ", method))  
   }
