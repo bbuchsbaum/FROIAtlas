@@ -105,7 +105,7 @@ blur_coord <- function(coord, template, kernel, weight=1) {
   
   ## shift kernel so that it is centered around 'grid.loc'
   voxmat <- floor(voxels(kernel, centerVoxel=grid.loc))
-  indices <- gridToIndex(space(template), voxmat)  
+  indices <- gridToIndex(template, voxmat)  
   neuroim:::SparseBrainVolume(kernel@weights * weight, space(template), indices=indices)
 }
 
@@ -123,9 +123,9 @@ blur_foci <- function(coords, template, kerndim=c(15,15,15)) {
   res <- Reduce("+", res)  
 }
 
-boot_foci <- function(coords, N=50, template=NULL, kernel=NULL) {
+boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted=FALSE) {
   if (is.null(template)) {
-    template = loadVolume("data/MNI_152_1mm.nii")
+    template = readRDS(system.file("data/MNI_SPACE.RDS", package="FROIAtlas"))
   }
   if (is.null(kernel)) {
     kernel = Kernel(c(15,15,15), spacing(template), dnorm, mean=0, sd=5)
@@ -143,11 +143,15 @@ boot_foci <- function(coords, N=50, template=NULL, kernel=NULL) {
   
   Dweights <- 1/(Dcent)
   Dweights <- Dweights/sum(Dweights)
-  res <- mclapply(1:N, function(i) {
+  res <- lapply(1:N, function(i) {
     print(i)
-    boot.sam <- sample(1:nrow(coords), replace=TRUE, prob=Dweights)
+    boot.sam <- if (centroidWeighted) {
+      sample(1:nrow(coords), replace=TRUE, prob=Dweights)
+    } else {
+      sample(1:nrow(coords), replace=TRUE)
+    }
+    
     C <- t(as.matrix(apply(coords[boot.sam,], 2, function(vals) mean(vals))))
-    print(C)
     blur_coord(C, template, kernel)
   })
  
