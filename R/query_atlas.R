@@ -30,9 +30,6 @@ clusterCoords <- function(coords, method=c("pdf", "clues", "pam")) {
 }
 
 
-
-
-
 changeLabel <- function(conn, oldName, newName) {
   u1 = Update(conn, "Foci", list(FROI=newName), where=Equals("FROI", oldName))
   u2 = Update(conn, "Study", list(FROI=newName), where=Equals("FROI", oldName))
@@ -111,18 +108,15 @@ blur_coord <- function(coord, template, kernel, weight=1) {
   neuroim:::SparseBrainVolume(kernel@weights * weight, template, indices=indices)
 }
 
-blur_foci <- function(coords, template, kerndim=c(15,15,15)) {
-  kernel <- Kernel(kerndim, spacing(template), dnorm, mean=0, sd=5)
-  centroid <- apply(coords, 2, function(vals) median(vals))
-  Dcent <- apply(coords, 1, function(coord) {
-    sqrt(sum((coord - centroid)^2))
-  })
-  
+blur_foci <- function(coords, template, kerndim=c(15,15,15), sd=5) {
+  kernel <- Kernel(kerndim, spacing(template), dnorm, mean=0, sd=sd)
   res <- mclapply(1:nrow(coords), function(i) {
-    blur_coord(coords[i,,drop=FALSE], kernel)    
+    vol <- blur_coord(coords[i,,drop=FALSE], template, kernel)    
+    vol@data * 1/max(vol)
   })
   
   res <- Reduce("+", res)  
+  BrainVolume(res@x, template, indices=res@i)
 }
 
 boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted=FALSE, trim=.05) {
