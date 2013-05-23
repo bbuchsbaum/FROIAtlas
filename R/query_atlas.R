@@ -83,7 +83,7 @@ check_outliers <- function(conn, roiname, hemi="left") {
   coords <- as.matrix(foci[,2:4])
   
   ## add jitter
-  coords <- coords + rnorm(length(coords))/10000
+  coords <- coords + rnorm(length(coords))/100000
   cvals <- c(.95, .99, .999, .9999)
   outmat <- do.call(cbind, lapply(cvals, function(crit) outliers(coords, crit, plot=FALSE)$wfinal01))
   outscore <- apply(outmat,1, function(vals) {
