@@ -106,7 +106,7 @@ blur_coord <- function(coord, template, kernel, weight=1) {
   ## shift kernel so that it is centered around 'grid.loc'
   voxmat <- floor(voxels(kernel, centerVoxel=grid.loc))
   indices <- gridToIndex(template, voxmat)  
-  neuroim:::SparseBrainVolume(kernel@weights * weight, space(template), indices=indices)
+  neuroim:::SparseBrainVolume(kernel@weights * weight, template, indices=indices)
 }
 
 blur_foci <- function(coords, template, kerndim=c(15,15,15)) {
