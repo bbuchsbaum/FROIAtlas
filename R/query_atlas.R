@@ -158,7 +158,7 @@ boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted
   res <- Reduce("+", res)
   R <- range(res)
   ovals <- (res@data - R[1])/diff(R)
-  BrainVolume(as.vector(ovals), space(template))
+  BrainVolume(as.vector(ovals), template)
 }
 
 
