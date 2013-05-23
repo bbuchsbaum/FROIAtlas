@@ -123,7 +123,7 @@ blur_foci <- function(coords, template, kerndim=c(15,15,15)) {
   res <- Reduce("+", res)  
 }
 
-boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted=FALSE) {
+boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted=FALSE, trim=.05) {
   if (is.null(template)) {
     template = readRDS(system.file("data/MNI_SPACE.RDS", package="FROIAtlas"))
   }
@@ -151,14 +151,14 @@ boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted
       sample(1:nrow(coords), replace=TRUE)
     }
     
-    C <- t(as.matrix(apply(coords[boot.sam,], 2, function(vals) mean(vals))))
+    C <- t(as.matrix(apply(coords[boot.sam,], 2, function(vals) mean(vals, trim=trim))))
     blur_coord(C, template, kernel)
   })
  
   res <- Reduce("+", res)
   R <- range(res)
   ovals <- (res@data - R[1])/diff(R)
-  BrainVolume(as.vector(ovals), template)
+  BrainVolume(ovals@x, template, indices=ovals@i)
 }
 
 
