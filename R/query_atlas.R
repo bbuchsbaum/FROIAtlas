@@ -98,6 +98,15 @@ check_outliers <- function(conn, roiname, hemi="left") {
   
 }
 
+coord_density <- function(coords, template) {
+  blurred <- blur_foci(coords, template, kerndim=c(15,15,15), sd=6)
+  idx <- which(blurred != 0)
+  cGrid <- indexToCoord(template, idx)
+  kres <- kepdf(coords, cGrid, bwtype="adaptive")@estimate
+  kres <- kres * 1/max(kres)
+  out <- BrainVolume(kres, template, indices=idx)
+}
+
 blur_coord <- function(coord, template, kernel, weight=1) {
   ## convert coordinate from MNI space to voxel space
   grid.loc <- coordToGrid(template, coord)   
@@ -119,7 +128,7 @@ blur_foci <- function(coords, template, kerndim=c(15,15,15), sd=5) {
   BrainVolume(res@x, template, indices=res@i)
 }
 
-boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted=FALSE, trim=.05) {
+boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted=FALSE, trim=.1) {
   if (is.null(template)) {
     template = readRDS(system.file("data/MNI_SPACE.RDS", package="FROIAtlas"))
   }
