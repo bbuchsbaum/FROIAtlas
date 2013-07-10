@@ -14,7 +14,6 @@ roi_names <- function(conn) {
 }
 
 
-
 clusterCoords <- function(coords, method=c("pdf", "clues", "pam")) {
   if (method[1] == "clues") {
     clues(as.matrix(coords), n0=3, strengthMethod="CH")  
