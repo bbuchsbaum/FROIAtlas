@@ -1,4 +1,5 @@
 
+#' create a database connection to FROIAtlas.sqlite db
 connect_atlas_db <- function(dbpath=NULL) {
   if (is.null(dbpath)) {
     dbpath <- system.file("data/FROIAtlas.sqlite", package = "FROIAtlas")
@@ -8,11 +9,44 @@ connect_atlas_db <- function(dbpath=NULL) {
   con <- dbConnect(drv, dbname = dbpath)
 }
 
+#' get all names of fROIs in database
 roi_names <- function(conn) {
   x <- execute(Select(conn, from="Foci"))
   unique(x$FROI)
 }
 
+#' dump atlas to tab separated ascii file
+#' @export
+dumpAtlas <- function(db) {
+  
+  res <- lapply(rois, function(roi) {
+    print(roi)
+    foci.left <- get_roi_foci(db, roi, "left")
+    foci.right <- get_roi_foci(db, roi, "right")
+    
+    c1 <- as.matrix(foci.left[,2:4])
+    c2 <- as.matrix(foci.right[,2:4])
+    
+    if (nrow(c1) > 0) {
+      o1 <- outliers(as.matrix(c1) + rnorm(length(c1))/10000, .95)$wfinal01 == 0
+      foci.left$out95 <- o1
+    } else {
+      foci.left$out95 <- numeric(0)
+    }
+    
+    if (nrow(c2) > 0) {    
+      o2 <- outliers(c2 + rnorm(length(c2))/10000, .95)$wfinal01 == 0
+      foci.right$out95 <- o2
+    } else {
+      foci.right$out95 <- numeric(0)
+    }
+    
+    rbind(foci.left, foci.right)
+       
+  })
+  
+  out <- do.call(rbind, res)
+}
 
 clusterCoords <- function(coords, method=c("pdf", "clues", "pam")) {
   if (method[1] == "clues") {
@@ -43,6 +77,9 @@ tal2mni <- function(coord) {
                   0, 0, 0, 1), 4,4, byrow=TRUE))
 }
 
+
+#' get table of information for supplied region of interest
+#' @export
 get_roi_foci <- function(conn, froi, hemi=NULL) {
   sel <- Select(conn, from="Foci", where=Equals("FROI",froi))
   foci <- execute(sel)
@@ -65,6 +102,8 @@ get_roi_foci <- function(conn, froi, hemi=NULL) {
   
 }
 
+#' get outlying coordinates based on multivariate test from \code{mvoutlier::sign1}
+#' @export
 outliers <- function(coords, qcrit=.999, plot=TRUE) {
   res <- sign1(coords, qcrit=qcrit)
   if (plot) {
