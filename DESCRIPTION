@@ -22,5 +22,3 @@ Depends:
 Collate:
   'sql_query.R' 
   'query_atlas.R'
-   
-    
