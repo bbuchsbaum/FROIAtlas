@@ -16,7 +16,7 @@ Depends:
     methods,
     RSQLite,
     clues,
-    mvoutlier,
+    parallel,
     pdfCluster,
     multicore
 Collate:
