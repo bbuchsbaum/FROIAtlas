@@ -15,7 +15,7 @@ runApp <- function(vol) {
         ),
         column(5,
           plotOutput("imagePlot"),
-          alignCenter(shiny::sliderInput("slice", "Slice Number", min=1, max=dim(vol)[3], ticks=FALSE, value=dim(vol)[3]/2))
+          alignCenter(shiny::sliderInput("slice", label="",min=1, max=dim(vol)[3], ticks=FALSE,value=dim(vol)[3]/2))
         )
       )
     ),
