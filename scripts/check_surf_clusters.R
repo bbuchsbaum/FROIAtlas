@@ -2,7 +2,7 @@
 
 options(warn=-1)
 
-suppressMessages(library(neuroim))
+suppressMessages(library(neuroim2))
 
 args <- commandArgs(trailingOnly=TRUE)
 surf <- args[1]

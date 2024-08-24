@@ -4,21 +4,23 @@ Imports:
     grid,
     stats
 License: GPL (>= 2)
-Maintainer: Bradley Buchsbaum <bbuchsbaum@rotman-baycrest.on.ca>
+Maintainer: Bradley Buchsbaum <brad.buchsbaum@gmail.com>
 Title: FROIAtlas
 Type: Package
 Author: Bradley Buchsbaum
 Description: FROIAtlas is a package for working with the FROIAtlas project
 Version: 0.0.1
-Date: 2013-01-10
+Date: 2024-08-17
 Depends:
     R (>= 2.15.0),
     methods,
     RSQLite,
-    clues,
     parallel,
     pdfCluster,
-    multicore
+    neuroim2
 Collate:
   'sql_query.R' 
   'query_atlas.R'
+Remotes:
+  bbuchsbaum/neuroim2,
+RoxygenNote: 7.3.1

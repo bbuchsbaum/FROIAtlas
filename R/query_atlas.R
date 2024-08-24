@@ -1,5 +1,6 @@
 
 #' create a database connection to FROIAtlas.sqlite db
+#' @export
 connect_atlas_db <- function(dbpath=NULL) {
   if (is.null(dbpath)) {
     dbpath <- system.file("data/FROIAtlas.sqlite", package = "FROIAtlas")
@@ -10,6 +11,7 @@ connect_atlas_db <- function(dbpath=NULL) {
 }
 
 #' get all names of fROIs in database
+#' @export
 roi_names <- function(conn) {
   x <- execute(Select(conn, from="Foci"))
   unique(x$FROI)
@@ -18,7 +20,7 @@ roi_names <- function(conn) {
 #' dump atlas to tab separated ascii file
 #' @export
 dumpAtlas <- function(db) {
-  
+  rois <- roi_names(db)
   res <- lapply(rois, function(roi) {
     print(roi)
     foci.left <- get_roi_foci(db, roi, "left")
@@ -48,12 +50,12 @@ dumpAtlas <- function(db) {
   out <- do.call(rbind, res)
 }
 
-clusterCoords <- function(coords, method=c("pdf", "clues", "pam")) {
-  if (method[1] == "clues") {
-    clues(as.matrix(coords), n0=3, strengthMethod="CH")  
-  } else if (method[1]=="pdf") {
+#' @export
+clusterCoords <- function(coords, method=c("pdf", "pam")) {
+  method <- match.arg(method)
+  if (method=="pdf") {
     pdfCluster(as.matrix(coords))
-  } else if (method[1]=="pam") {
+  } else if (method=="pam") {
     cg <- clusGap(coords, pam,5)
     K <- which.max(cg$Tab[,"gap"])
     pam(coords, K)
@@ -62,7 +64,7 @@ clusterCoords <- function(coords, method=c("pdf", "clues", "pam")) {
   }
 }
 
-
+#' @export
 changeLabel <- function(conn, oldName, newName) {
   u1 = Update(conn, "Foci", list(FROI=newName), where=Equals("FROI", oldName))
   u2 = Update(conn, "Study", list(FROI=newName), where=Equals("FROI", oldName))
@@ -70,12 +72,25 @@ changeLabel <- function(conn, oldName, newName) {
   execute(u2)
 }
 
+
+#' @export
 tal2mni <- function(coord) {
   MTT <- solve(matrix(c(.9357, .0029, -.0072, -1.0423,
                   -.0065, .9396, -.0726, -1.3940,
                   .0103,  .0752, .8967, 3.6475,
                   0, 0, 0, 1), 4,4, byrow=TRUE))
 }
+
+# Function to convert weights
+convert_weight <- function(weight) {
+  if (grepl("/", weight)) {
+    parts <- strsplit(weight, "/")[[1]]
+    return(as.numeric(parts[1]) / as.numeric(parts[2]))
+  } else {
+    return(as.numeric(weight))
+  }
+}
+
 
 
 #' get table of information for supplied region of interest
@@ -97,6 +112,11 @@ get_roi_foci <- function(conn, froi, hemi=NULL) {
     }
   }
   
+  # Apply the conversion to the Weight column
+  foci$Weight <- sapply(foci$Weight, convert_weight)
+  
+  
+  
   foci
   
   
@@ -113,6 +133,7 @@ outliers <- function(coords, qcrit=.999, plot=TRUE) {
   res
 }
 
+#' @export
 check_outliers <- function(conn, roiname, hemi="left") {
   foci <- get_roi_foci(conn, roiname, hemi) 
   coords <- as.matrix(foci[,2:4])
@@ -136,35 +157,39 @@ check_outliers <- function(conn, roiname, hemi="left") {
   
 }
 
-coord_density <- function(coords, template) {
-  blurred <- blur_foci(coords, template, kerndim=c(15,15,15), sd=6)
-  idx <- which(blurred != 0)
-  cGrid <- indexToCoord(template, idx)
-  kres <- kepdf(coords, cGrid, bwtype="adaptive")@estimate
-  kres <- kres * 1/max(kres)
-  out <- BrainVolume(kres, template, indices=idx)
-}
 
+# coord_density <- function(coords, template) {
+#   blurred <- blur_foci(coords, template, kerndim=c(15,15,15), sd=6)
+#   idx <- which(blurred != 0)
+#   cGrid <- neuroim2::index_to_coord(template, idx)
+#   kres <- kepdf(coords, cGrid, bwtype="adaptive")@estimate
+#   kres <- kres * 1/max(kres)
+#   out <- neuroim2::NeuroVol(kres, space(template), indices=idx)
+# }
+
+#' @export
 blur_coord <- function(coord, template, kernel, weight=1) {
   ## convert coordinate from MNI space to voxel space
-  grid.loc <- coordToGrid(template, coord)   
+  grid.loc <- neuroim2::coord_to_grid(template, coord)   
   
   ## shift kernel so that it is centered around 'grid.loc'
-  voxmat <- floor(voxels(kernel, centerVoxel=grid.loc))
-  indices <- gridToIndex(template, voxmat)  
-  neuroim:::SparseBrainVolume(kernel@weights * weight, template, indices=indices)
+  voxmat <- floor(neuroim2::voxels(kernel, center_voxel=grid.loc))
+  indices <- neuroim2::grid_to_index(template, voxmat)  
+  neuroim2:::SparseNeuroVol(kernel@weights * weight, neuroim2::space(template), indices=indices)
 }
 
+#' @export
 blur_foci <- function(coords, template, kerndim=c(15,15,15), sd=5) {
-  kernel <- Kernel(kerndim, spacing(template), dnorm, mean=0, sd=sd)
-  res <- mclapply(1:nrow(coords), function(i) {
-    vol <- blur_coord(coords[i,,drop=FALSE], template, kernel)    
+  kernel <- neuroim2::Kernel(kerndim, neuroim2::spacing(template), dnorm, mean=0, sd=sd)
+  res <- lapply(1:nrow(coords), function(i) {
+    vol <- blur_coord(as.numeric(coords[i,,drop=FALSE]), template, kernel)    
     vol@data * 1/max(vol)
   })
   
   res <- Reduce("+", res)  
-  BrainVolume(res@x, template, indices=res@i)
+  neuroim2::SparseNeuroVol(res@x, neuroim2::space(template), indices=res@i)
 }
+
 
 boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted=FALSE, trim=.1) {
   if (is.null(template)) {
@@ -201,7 +226,7 @@ boot_foci <- function(coords, N=50, template=NULL, kernel=NULL, centroidWeighted
   res <- Reduce("+", res)
   R <- range(res)
   ovals <- (res@data - R[1])/diff(R)
-  BrainVolume(ovals@x, template, indices=ovals@i)
+  NeuroVol(ovals@x, template, indices=ovals@i)
 }
 
 
